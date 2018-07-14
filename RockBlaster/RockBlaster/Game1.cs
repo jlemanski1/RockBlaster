@@ -56,7 +56,7 @@ namespace RockBlaster
 
 			CameraSetup.SetupCamera(SpriteManager.Camera, graphics);
 			GlobalContent.Initialize();
-            //ScreenManager.Start(typeof(SomeScreen).FullName);
+			FlatRedBall.Screens.ScreenManager.Start(typeof(RockBlaster.Screens.GameScreen));
 
             base.Initialize();
         }
