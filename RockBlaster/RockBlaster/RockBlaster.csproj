@@ -63,6 +63,7 @@
     <Compile Include="Entities\Rock.Generated.cs">
       <DependentUpon>Rock.cs</DependentUpon>
     </Compile>
+    <Compile Include="Factories\BulletFactory.Generated.cs" />
     <Compile Include="FileAliases.Generated.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GlobalContent.Generated.cs" />
@@ -109,6 +110,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="content\entities\bullet\bullet1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>Bullet1</Name>
+    </None>
+    <None Include="content\entities\mainship\mainship1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>MainShip1</Name>
+    </None>
+    <None Include="content\entities\mainship\mainship2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>MainShip2</Name>
+    </None>
+    <None Include="content\entities\mainship\mainship3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>MainShip3</Name>
+    </None>
+    <None Include="content\entities\mainship\mainship4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>MainShip4</Name>
+    </None>
     <None Include="Libraries\DesktopGl\Debug\FlatRedBall.Forms.dll" />
     <None Include="Libraries\DesktopGl\Debug\GumCoreXnaPc.dll" />
     <None Include="Libraries\DesktopGl\Debug\StateInterpolation.dll" />

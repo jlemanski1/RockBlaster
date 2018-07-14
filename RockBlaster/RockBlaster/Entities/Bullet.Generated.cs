@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 namespace RockBlaster.Entities
 {
-    public partial class Bullet : FlatRedBall.PositionedObject, FlatRedBall.Graphics.IDestroyable
+    public partial class Bullet : FlatRedBall.PositionedObject, FlatRedBall.Graphics.IDestroyable, FlatRedBall.Performance.IPoolable
     {
         // This is made static so that static lazy-loaded content can access it.
         public static string ContentManagerName { get; set; }
@@ -20,7 +20,12 @@ namespace RockBlaster.Entities
         static object mLockObject = new object();
         static System.Collections.Generic.List<string> mRegisteredUnloads = new System.Collections.Generic.List<string>();
         static System.Collections.Generic.List<string> LoadedContentManagers = new System.Collections.Generic.List<string>();
+        protected static Microsoft.Xna.Framework.Graphics.Texture2D Bullet1;
         
+        private FlatRedBall.Sprite Sprite;
+        public int MovementSpeed = 300;
+        public int Index { get; set; }
+        public bool Used { get; set; }
         protected FlatRedBall.Graphics.Layer LayerProvidedByContainer = null;
         public Bullet () 
         	: this(FlatRedBall.Screens.ScreenManager.CurrentScreen.ContentManagerName, true)
@@ -39,6 +44,8 @@ namespace RockBlaster.Entities
         protected virtual void InitializeEntity (bool addToManagers) 
         {
             LoadStaticContent(ContentManagerName);
+            Sprite = new FlatRedBall.Sprite();
+            Sprite.Name = "Sprite";
             
             PostInitialize();
             if (addToManagers)
@@ -50,11 +57,13 @@ namespace RockBlaster.Entities
         {
             LayerProvidedByContainer = layerToAddTo;
             FlatRedBall.SpriteManager.AddPositionedObject(this);
+            FlatRedBall.SpriteManager.AddToLayer(Sprite, LayerProvidedByContainer);
         }
         public virtual void AddToManagers (FlatRedBall.Graphics.Layer layerToAddTo) 
         {
             LayerProvidedByContainer = layerToAddTo;
             FlatRedBall.SpriteManager.AddPositionedObject(this);
+            FlatRedBall.SpriteManager.AddToLayer(Sprite, LayerProvidedByContainer);
             AddToManagersBottomUp(layerToAddTo);
             CustomInitialize();
         }
@@ -65,14 +74,29 @@ namespace RockBlaster.Entities
         }
         public virtual void Destroy () 
         {
+            if (Used)
+            {
+                Factories.BulletFactory.MakeUnused(this, false);
+            }
             FlatRedBall.SpriteManager.RemovePositionedObject(this);
             
+            if (Sprite != null)
+            {
+                FlatRedBall.SpriteManager.RemoveSpriteOneWay(Sprite);
+            }
             CustomDestroy();
         }
         public virtual void PostInitialize () 
         {
             bool oldShapeManagerSuppressAdd = FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = true;
+            if (Sprite.Parent == null)
+            {
+                Sprite.CopyAbsoluteToRelative();
+                Sprite.AttachTo(this, false);
+            }
+            Sprite.Texture = Bullet1;
+            Sprite.TextureScale = 1f;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = oldShapeManagerSuppressAdd;
         }
         public virtual void AddToManagersBottomUp (FlatRedBall.Graphics.Layer layerToAddTo) 
@@ -82,17 +106,25 @@ namespace RockBlaster.Entities
         public virtual void RemoveFromManagers () 
         {
             FlatRedBall.SpriteManager.ConvertToManuallyUpdated(this);
+            if (Sprite != null)
+            {
+                FlatRedBall.SpriteManager.RemoveSpriteOneWay(Sprite);
+            }
         }
         public virtual void AssignCustomVariables (bool callOnContainedElements) 
         {
             if (callOnContainedElements)
             {
             }
+            Sprite.Texture = Bullet1;
+            Sprite.TextureScale = 1f;
+            MovementSpeed = 300;
         }
         public virtual void ConvertToManuallyUpdated () 
         {
             this.ForceUpdateDependenciesDeep();
             FlatRedBall.SpriteManager.ConvertToManuallyUpdated(this);
+            FlatRedBall.SpriteManager.ConvertToManuallyUpdated(Sprite);
         }
         public static void LoadStaticContent (string contentManagerName) 
         {
@@ -123,6 +155,11 @@ namespace RockBlaster.Entities
                         mRegisteredUnloads.Add(ContentManagerName);
                     }
                 }
+                if (!FlatRedBall.FlatRedBallServices.IsLoaded<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/bullet/bullet1.png", ContentManagerName))
+                {
+                    registerUnload = true;
+                }
+                Bullet1 = FlatRedBall.FlatRedBallServices.Load<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/bullet/bullet1.png", ContentManagerName);
             }
             if (registerUnload && ContentManagerName != FlatRedBall.FlatRedBallServices.GlobalContentManager)
             {
@@ -146,19 +183,38 @@ namespace RockBlaster.Entities
             }
             if (LoadedContentManagers.Count == 0)
             {
+                if (Bullet1 != null)
+                {
+                    Bullet1= null;
+                }
             }
         }
         [System.Obsolete("Use GetFile instead")]
         public static object GetStaticMember (string memberName) 
         {
+            switch(memberName)
+            {
+                case  "Bullet1":
+                    return Bullet1;
+            }
             return null;
         }
         public static object GetFile (string memberName) 
         {
+            switch(memberName)
+            {
+                case  "Bullet1":
+                    return Bullet1;
+            }
             return null;
         }
         object GetMember (string memberName) 
         {
+            switch(memberName)
+            {
+                case  "Bullet1":
+                    return Bullet1;
+            }
             return null;
         }
         protected bool mIsPaused;
@@ -170,10 +226,16 @@ namespace RockBlaster.Entities
         public virtual void SetToIgnorePausing () 
         {
             FlatRedBall.Instructions.InstructionManager.IgnorePausingFor(this);
+            FlatRedBall.Instructions.InstructionManager.IgnorePausingFor(Sprite);
         }
         public virtual void MoveToLayer (FlatRedBall.Graphics.Layer layerToMoveTo) 
         {
             var layerToRemoveFrom = LayerProvidedByContainer;
+            if (layerToRemoveFrom != null)
+            {
+                layerToRemoveFrom.Remove(Sprite);
+            }
+            FlatRedBall.SpriteManager.AddToLayer(Sprite, layerToMoveTo);
             LayerProvidedByContainer = layerToMoveTo;
         }
     }

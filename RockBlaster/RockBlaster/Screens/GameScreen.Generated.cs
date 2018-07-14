@@ -20,6 +20,7 @@ namespace RockBlaster.Screens
         private FlatRedBall.Math.PositionedObjectList<RockBlaster.Entities.MainShip> MainShipList;
         private RockBlaster.Entities.EndGameUI EndGameUIInstance;
         private RockBlaster.Entities.Hud HudInstance;
+        private RockBlaster.Entities.MainShip MainShipInstance;
         public GameScreen () 
         	: base ("GameScreen")
         {
@@ -37,6 +38,8 @@ namespace RockBlaster.Screens
             EndGameUIInstance.Name = "EndGameUIInstance";
             HudInstance = new RockBlaster.Entities.Hud(ContentManagerName, false);
             HudInstance.Name = "HudInstance";
+            MainShipInstance = new RockBlaster.Entities.MainShip(ContentManagerName, false);
+            MainShipInstance.Name = "MainShipInstance";
             
             
             PostInitialize();
@@ -48,8 +51,11 @@ namespace RockBlaster.Screens
         }
         public override void AddToManagers () 
         {
+            Factories.BulletFactory.Initialize(ContentManagerName);
+            Factories.BulletFactory.AddList(BulletList);
             EndGameUIInstance.AddToManagers(mLayer);
             HudInstance.AddToManagers(mLayer);
+            MainShipInstance.AddToManagers(mLayer);
             base.AddToManagers();
             AddToManagersBottomUp();
             CustomInitialize();
@@ -85,6 +91,7 @@ namespace RockBlaster.Screens
                 }
                 EndGameUIInstance.Activity();
                 HudInstance.Activity();
+                MainShipInstance.Activity();
             }
             else
             {
@@ -98,6 +105,7 @@ namespace RockBlaster.Screens
         public override void Destroy () 
         {
             base.Destroy();
+            Factories.BulletFactory.Destroy();
             
             BulletList.MakeOneWay();
             RockList.MakeOneWay();
@@ -123,6 +131,11 @@ namespace RockBlaster.Screens
             {
                 HudInstance.Destroy();
                 HudInstance.Detach();
+            }
+            if (MainShipInstance != null)
+            {
+                MainShipInstance.Destroy();
+                MainShipInstance.Detach();
             }
             BulletList.MakeTwoWay();
             RockList.MakeTwoWay();
@@ -157,6 +170,7 @@ namespace RockBlaster.Screens
             }
             EndGameUIInstance.RemoveFromManagers();
             HudInstance.RemoveFromManagers();
+            MainShipInstance.RemoveFromManagers();
         }
         public virtual void AssignCustomVariables (bool callOnContainedElements) 
         {
@@ -164,6 +178,7 @@ namespace RockBlaster.Screens
             {
                 EndGameUIInstance.AssignCustomVariables(true);
                 HudInstance.AssignCustomVariables(true);
+                MainShipInstance.AssignCustomVariables(true);
             }
         }
         public virtual void ConvertToManuallyUpdated () 
@@ -182,6 +197,7 @@ namespace RockBlaster.Screens
             }
             EndGameUIInstance.ConvertToManuallyUpdated();
             HudInstance.ConvertToManuallyUpdated();
+            MainShipInstance.ConvertToManuallyUpdated();
         }
         public static void LoadStaticContent (string contentManagerName) 
         {
@@ -201,6 +217,7 @@ namespace RockBlaster.Screens
             #endif
             RockBlaster.Entities.EndGameUI.LoadStaticContent(contentManagerName);
             RockBlaster.Entities.Hud.LoadStaticContent(contentManagerName);
+            RockBlaster.Entities.MainShip.LoadStaticContent(contentManagerName);
             CustomLoadStaticContent(contentManagerName);
         }
         public override void PauseThisScreen () 
