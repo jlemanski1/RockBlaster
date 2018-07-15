@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 namespace RockBlaster.Entities
 {
-    public partial class Rock : FlatRedBall.PositionedObject, FlatRedBall.Graphics.IDestroyable, FlatRedBall.Performance.IPoolable
+    public partial class RockSpawner : FlatRedBall.PositionedObject, FlatRedBall.Graphics.IDestroyable
     {
         // This is made static so that static lazy-loaded content can access it.
         public static string ContentManagerName { get; set; }
@@ -20,24 +20,21 @@ namespace RockBlaster.Entities
         static object mLockObject = new object();
         static System.Collections.Generic.List<string> mRegisteredUnloads = new System.Collections.Generic.List<string>();
         static System.Collections.Generic.List<string> LoadedContentManagers = new System.Collections.Generic.List<string>();
-        protected static Microsoft.Xna.Framework.Graphics.Texture2D Rock1;
-        protected static Microsoft.Xna.Framework.Graphics.Texture2D Rock2;
-        protected static Microsoft.Xna.Framework.Graphics.Texture2D Rock3;
-        protected static Microsoft.Xna.Framework.Graphics.Texture2D Rock4;
         
-        private FlatRedBall.Sprite Sprite;
-        public int Index { get; set; }
-        public bool Used { get; set; }
+        public float RocksPerSecond = 0.2f;
+        public float SpawnRateIncrease = 0.015f;
+        public float MinVelocity = 50f;
+        public float MaxVelocity = 100f;
         protected FlatRedBall.Graphics.Layer LayerProvidedByContainer = null;
-        public Rock () 
+        public RockSpawner () 
         	: this(FlatRedBall.Screens.ScreenManager.CurrentScreen.ContentManagerName, true)
         {
         }
-        public Rock (string contentManagerName) 
+        public RockSpawner (string contentManagerName) 
         	: this(contentManagerName, true)
         {
         }
-        public Rock (string contentManagerName, bool addToManagers) 
+        public RockSpawner (string contentManagerName, bool addToManagers) 
         	: base()
         {
             ContentManagerName = contentManagerName;
@@ -46,8 +43,6 @@ namespace RockBlaster.Entities
         protected virtual void InitializeEntity (bool addToManagers) 
         {
             LoadStaticContent(ContentManagerName);
-            Sprite = new FlatRedBall.Sprite();
-            Sprite.Name = "Sprite";
             
             PostInitialize();
             if (addToManagers)
@@ -59,13 +54,11 @@ namespace RockBlaster.Entities
         {
             LayerProvidedByContainer = layerToAddTo;
             FlatRedBall.SpriteManager.AddPositionedObject(this);
-            FlatRedBall.SpriteManager.AddToLayer(Sprite, LayerProvidedByContainer);
         }
         public virtual void AddToManagers (FlatRedBall.Graphics.Layer layerToAddTo) 
         {
             LayerProvidedByContainer = layerToAddTo;
             FlatRedBall.SpriteManager.AddPositionedObject(this);
-            FlatRedBall.SpriteManager.AddToLayer(Sprite, LayerProvidedByContainer);
             AddToManagersBottomUp(layerToAddTo);
             CustomInitialize();
         }
@@ -76,29 +69,14 @@ namespace RockBlaster.Entities
         }
         public virtual void Destroy () 
         {
-            if (Used)
-            {
-                Factories.RockFactory.MakeUnused(this, false);
-            }
             FlatRedBall.SpriteManager.RemovePositionedObject(this);
             
-            if (Sprite != null)
-            {
-                FlatRedBall.SpriteManager.RemoveSpriteOneWay(Sprite);
-            }
             CustomDestroy();
         }
         public virtual void PostInitialize () 
         {
             bool oldShapeManagerSuppressAdd = FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = true;
-            if (Sprite.Parent == null)
-            {
-                Sprite.CopyAbsoluteToRelative();
-                Sprite.AttachTo(this, false);
-            }
-            Sprite.Texture = Rock1;
-            Sprite.TextureScale = 1f;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = oldShapeManagerSuppressAdd;
         }
         public virtual void AddToManagersBottomUp (FlatRedBall.Graphics.Layer layerToAddTo) 
@@ -108,24 +86,21 @@ namespace RockBlaster.Entities
         public virtual void RemoveFromManagers () 
         {
             FlatRedBall.SpriteManager.ConvertToManuallyUpdated(this);
-            if (Sprite != null)
-            {
-                FlatRedBall.SpriteManager.RemoveSpriteOneWay(Sprite);
-            }
         }
         public virtual void AssignCustomVariables (bool callOnContainedElements) 
         {
             if (callOnContainedElements)
             {
             }
-            Sprite.Texture = Rock1;
-            Sprite.TextureScale = 1f;
+            RocksPerSecond = 0.2f;
+            SpawnRateIncrease = 0.015f;
+            MinVelocity = 50f;
+            MaxVelocity = 100f;
         }
         public virtual void ConvertToManuallyUpdated () 
         {
             this.ForceUpdateDependenciesDeep();
             FlatRedBall.SpriteManager.ConvertToManuallyUpdated(this);
-            FlatRedBall.SpriteManager.ConvertToManuallyUpdated(Sprite);
         }
         public static void LoadStaticContent (string contentManagerName) 
         {
@@ -152,30 +127,10 @@ namespace RockBlaster.Entities
                 {
                     if (!mRegisteredUnloads.Contains(ContentManagerName) && ContentManagerName != FlatRedBall.FlatRedBallServices.GlobalContentManager)
                     {
-                        FlatRedBall.FlatRedBallServices.GetContentManagerByName(ContentManagerName).AddUnloadMethod("RockStaticUnload", UnloadStaticContent);
+                        FlatRedBall.FlatRedBallServices.GetContentManagerByName(ContentManagerName).AddUnloadMethod("RockSpawnerStaticUnload", UnloadStaticContent);
                         mRegisteredUnloads.Add(ContentManagerName);
                     }
                 }
-                if (!FlatRedBall.FlatRedBallServices.IsLoaded<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock1.png", ContentManagerName))
-                {
-                    registerUnload = true;
-                }
-                Rock1 = FlatRedBall.FlatRedBallServices.Load<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock1.png", ContentManagerName);
-                if (!FlatRedBall.FlatRedBallServices.IsLoaded<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock2.png", ContentManagerName))
-                {
-                    registerUnload = true;
-                }
-                Rock2 = FlatRedBall.FlatRedBallServices.Load<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock2.png", ContentManagerName);
-                if (!FlatRedBall.FlatRedBallServices.IsLoaded<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock3.png", ContentManagerName))
-                {
-                    registerUnload = true;
-                }
-                Rock3 = FlatRedBall.FlatRedBallServices.Load<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock3.png", ContentManagerName);
-                if (!FlatRedBall.FlatRedBallServices.IsLoaded<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock4.png", ContentManagerName))
-                {
-                    registerUnload = true;
-                }
-                Rock4 = FlatRedBall.FlatRedBallServices.Load<Microsoft.Xna.Framework.Graphics.Texture2D>(@"content/entities/rock/rock4.png", ContentManagerName);
             }
             if (registerUnload && ContentManagerName != FlatRedBall.FlatRedBallServices.GlobalContentManager)
             {
@@ -183,7 +138,7 @@ namespace RockBlaster.Entities
                 {
                     if (!mRegisteredUnloads.Contains(ContentManagerName) && ContentManagerName != FlatRedBall.FlatRedBallServices.GlobalContentManager)
                     {
-                        FlatRedBall.FlatRedBallServices.GetContentManagerByName(ContentManagerName).AddUnloadMethod("RockStaticUnload", UnloadStaticContent);
+                        FlatRedBall.FlatRedBallServices.GetContentManagerByName(ContentManagerName).AddUnloadMethod("RockSpawnerStaticUnload", UnloadStaticContent);
                         mRegisteredUnloads.Add(ContentManagerName);
                     }
                 }
@@ -199,68 +154,19 @@ namespace RockBlaster.Entities
             }
             if (LoadedContentManagers.Count == 0)
             {
-                if (Rock1 != null)
-                {
-                    Rock1= null;
-                }
-                if (Rock2 != null)
-                {
-                    Rock2= null;
-                }
-                if (Rock3 != null)
-                {
-                    Rock3= null;
-                }
-                if (Rock4 != null)
-                {
-                    Rock4= null;
-                }
             }
         }
         [System.Obsolete("Use GetFile instead")]
         public static object GetStaticMember (string memberName) 
         {
-            switch(memberName)
-            {
-                case  "Rock1":
-                    return Rock1;
-                case  "Rock2":
-                    return Rock2;
-                case  "Rock3":
-                    return Rock3;
-                case  "Rock4":
-                    return Rock4;
-            }
             return null;
         }
         public static object GetFile (string memberName) 
         {
-            switch(memberName)
-            {
-                case  "Rock1":
-                    return Rock1;
-                case  "Rock2":
-                    return Rock2;
-                case  "Rock3":
-                    return Rock3;
-                case  "Rock4":
-                    return Rock4;
-            }
             return null;
         }
         object GetMember (string memberName) 
         {
-            switch(memberName)
-            {
-                case  "Rock1":
-                    return Rock1;
-                case  "Rock2":
-                    return Rock2;
-                case  "Rock3":
-                    return Rock3;
-                case  "Rock4":
-                    return Rock4;
-            }
             return null;
         }
         protected bool mIsPaused;
@@ -272,16 +178,10 @@ namespace RockBlaster.Entities
         public virtual void SetToIgnorePausing () 
         {
             FlatRedBall.Instructions.InstructionManager.IgnorePausingFor(this);
-            FlatRedBall.Instructions.InstructionManager.IgnorePausingFor(Sprite);
         }
         public virtual void MoveToLayer (FlatRedBall.Graphics.Layer layerToMoveTo) 
         {
             var layerToRemoveFrom = LayerProvidedByContainer;
-            if (layerToRemoveFrom != null)
-            {
-                layerToRemoveFrom.Remove(Sprite);
-            }
-            FlatRedBall.SpriteManager.AddToLayer(Sprite, layerToMoveTo);
             LayerProvidedByContainer = layerToMoveTo;
         }
     }

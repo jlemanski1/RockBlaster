@@ -21,6 +21,7 @@ namespace RockBlaster.Screens
         private RockBlaster.Entities.EndGameUI EndGameUIInstance;
         private RockBlaster.Entities.Hud HudInstance;
         private RockBlaster.Entities.MainShip MainShipInstance;
+        private RockBlaster.Entities.RockSpawner RockSpawnerInstance;
         public GameScreen () 
         	: base ("GameScreen")
         {
@@ -40,6 +41,8 @@ namespace RockBlaster.Screens
             HudInstance.Name = "HudInstance";
             MainShipInstance = new RockBlaster.Entities.MainShip(ContentManagerName, false);
             MainShipInstance.Name = "MainShipInstance";
+            RockSpawnerInstance = new RockBlaster.Entities.RockSpawner(ContentManagerName, false);
+            RockSpawnerInstance.Name = "RockSpawnerInstance";
             
             
             PostInitialize();
@@ -52,10 +55,13 @@ namespace RockBlaster.Screens
         public override void AddToManagers () 
         {
             Factories.BulletFactory.Initialize(ContentManagerName);
+            Factories.RockFactory.Initialize(ContentManagerName);
             Factories.BulletFactory.AddList(BulletList);
+            Factories.RockFactory.AddList(RockList);
             EndGameUIInstance.AddToManagers(mLayer);
             HudInstance.AddToManagers(mLayer);
             MainShipInstance.AddToManagers(mLayer);
+            RockSpawnerInstance.AddToManagers(mLayer);
             base.AddToManagers();
             AddToManagersBottomUp();
             CustomInitialize();
@@ -92,6 +98,7 @@ namespace RockBlaster.Screens
                 EndGameUIInstance.Activity();
                 HudInstance.Activity();
                 MainShipInstance.Activity();
+                RockSpawnerInstance.Activity();
             }
             else
             {
@@ -106,6 +113,7 @@ namespace RockBlaster.Screens
         {
             base.Destroy();
             Factories.BulletFactory.Destroy();
+            Factories.RockFactory.Destroy();
             
             BulletList.MakeOneWay();
             RockList.MakeOneWay();
@@ -137,6 +145,11 @@ namespace RockBlaster.Screens
                 MainShipInstance.Destroy();
                 MainShipInstance.Detach();
             }
+            if (RockSpawnerInstance != null)
+            {
+                RockSpawnerInstance.Destroy();
+                RockSpawnerInstance.Detach();
+            }
             BulletList.MakeTwoWay();
             RockList.MakeTwoWay();
             MainShipList.MakeTwoWay();
@@ -147,6 +160,10 @@ namespace RockBlaster.Screens
         {
             bool oldShapeManagerSuppressAdd = FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = true;
+            RockSpawnerInstance.RocksPerSecond = 0.2f;
+            RockSpawnerInstance.SpawnRateIncrease = 0.015f;
+            RockSpawnerInstance.MinVelocity = 50f;
+            RockSpawnerInstance.MaxVelocity = 100f;
             FlatRedBall.Math.Geometry.ShapeManager.SuppressAddingOnVisibilityTrue = oldShapeManagerSuppressAdd;
         }
         public virtual void AddToManagersBottomUp () 
@@ -171,6 +188,7 @@ namespace RockBlaster.Screens
             EndGameUIInstance.RemoveFromManagers();
             HudInstance.RemoveFromManagers();
             MainShipInstance.RemoveFromManagers();
+            RockSpawnerInstance.RemoveFromManagers();
         }
         public virtual void AssignCustomVariables (bool callOnContainedElements) 
         {
@@ -179,7 +197,12 @@ namespace RockBlaster.Screens
                 EndGameUIInstance.AssignCustomVariables(true);
                 HudInstance.AssignCustomVariables(true);
                 MainShipInstance.AssignCustomVariables(true);
+                RockSpawnerInstance.AssignCustomVariables(true);
             }
+            RockSpawnerInstance.RocksPerSecond = 0.2f;
+            RockSpawnerInstance.SpawnRateIncrease = 0.015f;
+            RockSpawnerInstance.MinVelocity = 50f;
+            RockSpawnerInstance.MaxVelocity = 100f;
         }
         public virtual void ConvertToManuallyUpdated () 
         {
@@ -198,6 +221,7 @@ namespace RockBlaster.Screens
             EndGameUIInstance.ConvertToManuallyUpdated();
             HudInstance.ConvertToManuallyUpdated();
             MainShipInstance.ConvertToManuallyUpdated();
+            RockSpawnerInstance.ConvertToManuallyUpdated();
         }
         public static void LoadStaticContent (string contentManagerName) 
         {
@@ -218,6 +242,7 @@ namespace RockBlaster.Screens
             RockBlaster.Entities.EndGameUI.LoadStaticContent(contentManagerName);
             RockBlaster.Entities.Hud.LoadStaticContent(contentManagerName);
             RockBlaster.Entities.MainShip.LoadStaticContent(contentManagerName);
+            RockBlaster.Entities.RockSpawner.LoadStaticContent(contentManagerName);
             CustomLoadStaticContent(contentManagerName);
         }
         public override void PauseThisScreen () 

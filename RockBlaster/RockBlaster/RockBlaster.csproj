@@ -63,7 +63,12 @@
     <Compile Include="Entities\Rock.Generated.cs">
       <DependentUpon>Rock.cs</DependentUpon>
     </Compile>
+    <Compile Include="Entities\RockSpawner.cs" />
+    <Compile Include="Entities\RockSpawner.Generated.cs">
+      <DependentUpon>RockSpawner.cs</DependentUpon>
+    </Compile>
     <Compile Include="Factories\BulletFactory.Generated.cs" />
+    <Compile Include="Factories\RockFactory.Generated.cs" />
     <Compile Include="FileAliases.Generated.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GlobalContent.Generated.cs" />
@@ -129,6 +134,22 @@
     <None Include="content\entities\mainship\mainship4.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Name>MainShip4</Name>
+    </None>
+    <None Include="content\entities\rock\rock1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>Rock1</Name>
+    </None>
+    <None Include="content\entities\rock\rock2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>Rock2</Name>
+    </None>
+    <None Include="content\entities\rock\rock3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>Rock3</Name>
+    </None>
+    <None Include="content\entities\rock\rock4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Name>Rock4</Name>
     </None>
     <None Include="Libraries\DesktopGl\Debug\FlatRedBall.Forms.dll" />
     <None Include="Libraries\DesktopGl\Debug\GumCoreXnaPc.dll" />
